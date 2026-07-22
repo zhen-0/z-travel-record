@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>东北三省赏秋环线 · 路线图</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  #map { width: 100vw; height: 100vh; }
+  .nav-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: rgba(15,23,42,0.9); backdrop-filter: blur(8px);
+    padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+  }
+  .nav-bar a { color: #94a3b8; text-decoration: none; font-size: 14px; }
+  .nav-bar a:hover { color: #fff; }
+  .nav-bar span { color: #e2e8f0; font-size: 14px; font-weight: 500; }
+  .leaflet-popup-content-wrapper {
+    border-radius: 8px; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .leaflet-popup-content { margin: 10px 14px; }
+  .popup-title { font-weight: 600; font-size: 14px; color: #0f172a; margin-bottom: 4px; }
+  .popup-desc { font-size: 12px; color: #64748b; line-height: 1.5; }
+  .custom-marker {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #fff; border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .legend {
+    position: fixed; bottom: 30px; left: 20px; z-index: 1000;
+    background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); border-radius: 10px;
+    padding: 16px; color: #e2e8f0; max-height: 40vh; overflow-y: auto; width: 240px;
+  }
+  .legend h3 { font-size: 13px; margin-bottom: 10px; color: #fff; }
+  .legend-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; cursor: pointer; }
+  .legend-item:hover { color: #fff; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  @media (max-width: 640px) {
+    .legend { width: 180px; font-size: 11px; left: 10px; bottom: 10px; padding: 12px; max-height: 35vh; }
+    .nav-bar { padding: 10px 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="../index.html">← 所有计划</a>
+  <span>/</span>
+  <a href="dongbei.html">东北环线</a>
+  <span>/ 路线图</span>
+</div>
+<div id="map"></div>
+<div class="legend" id="legend">
+  <h3>📌 每日站点</h3>
+</div>
+<script>
+const waypoints = [
+  { day: 1, date: "9/25", name: "哈尔滨", lat: 45.8038, lng: 126.5350, desc: "抵达哈尔滨，取车，逛中央大街/索菲亚教堂" },
+  { day: 2, date: "9/26", name: "齐齐哈尔", lat: 47.3500, lng: 123.9500, desc: "哈尔滨→大庆→齐齐哈尔（烤肉）" },
+  { day: 3, date: "9/27", name: "五大连池", lat: 48.6500, lng: 126.1500, desc: "扎龙丹顶鹤→五大连池（中秋）" },
+  { day: 4, date: "9/28", name: "五大连池", lat: 48.6550, lng: 126.1550, desc: "全天游览五大连池火山群" },
+  { day: 5, date: "9/29", name: "伊春", lat: 47.7333, lng: 128.9000, desc: "五大连池→林都伊春（兴安森林公园）" },
+  { day: 6, date: "9/30", name: "嘉荫", lat: 48.8833, lng: 130.3833, desc: "伊春→汤旺河石林→嘉荫（黑龙江畔）" },
+  { day: 7, date: "10/1", name: "佳木斯", lat: 46.8000, lng: 130.3500, desc: "嘉荫→茅兰沟→佳木斯（国庆）" },
+  { day: 8, date: "10/2", name: "牡丹江", lat: 44.5833, lng: 129.6000, desc: "佳木斯→牡丹江（石板烤肉）" },
+  { day: 9, date: "10/3", name: "镜泊湖", lat: 43.9167, lng: 128.9333, desc: "牡丹江→镜泊湖（瀑布/游湖）" },
+  { day: 10, date: "10/4", name: "长白山", lat: 42.4333, lng: 128.1000, desc: "镜泊湖→敦化→二道白河" },
+  { day: 11, date: "10/5", name: "长白山", lat: 42.4300, lng: 128.1050, desc: "全天游览长白山天池/瀑布/温泉" },
+  { day: 12, date: "10/6", name: "沈阳", lat: 41.8000, lng: 123.4333, desc: "长白山→抚松→沈阳" },
+  { day: 13, date: "10/7", name: "大连", lat: 38.9167, lng: 121.6167, desc: "沈阳故宫→大连返程" },
+];
+
+const colors = ["#0369a1","#0891b2","#22d3ee","#06b6d4","#0ea5e9","#3b82f6","#6366f1","#8b5cf6","#a855f7","#d946ef","#ec4899","#f43f5e","#e11d48"];
+
+const map = L.map("map", { zoomControl: true }).setView([45.5, 126.5], 5);
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 18, attribution: "&copy; OpenStreetMap"
+}).addTo(map);
+
+const pts = waypoints.map(w => [w.lat, w.lng]);
+const polyline = L.polyline(pts, {
+  color: "#0369a1", weight: 4, opacity: 0.85, dashArray: "8, 6"
+}).addTo(map);
+
+waypoints.forEach((w, i) => {
+  const color = colors[i % colors.length];
+  const marker = L.marker([w.lat, w.lng], {
+    icon: L.divIcon({
+      className: "",
+      html: `<div class="custom-marker" style="background:${color}">${w.day}</div>`,
+      iconSize: [28, 28], iconAnchor: [14, 14]
+    })
+  }).addTo(map);
+
+  marker.bindPopup(`
+    <div class="popup-title"><strong>Day ${w.day}</strong> · ${w.date} · ${w.name}</div>
+    <div class="popup-desc">${w.desc}</div>
+  `);
+
+  const legend = document.getElementById("legend");
+  const item = document.createElement("div");
+  item.className = "legend-item";
+  item.innerHTML = `<div class="legend-dot" style="background:${color}"></div>Day ${w.day} ${w.date} — ${w.name}`;
+  item.addEventListener("click", () => {
+    map.setView([w.lat, w.lng], 8, { animate: true });
+    marker.openPopup();
+  });
+  legend.appendChild(item);
+});
+
+map.fitBounds(polyline.getBounds().pad(0.12));
+</script>
+</body>
+</html>

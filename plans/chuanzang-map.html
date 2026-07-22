@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>川藏南线 G318 · 路线图</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  #map { width: 100vw; height: 100vh; }
+  .nav-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: rgba(15,23,42,0.9); backdrop-filter: blur(8px);
+    padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+  }
+  .nav-bar a { color: #94a3b8; text-decoration: none; font-size: 14px; }
+  .nav-bar a:hover { color: #fff; }
+  .nav-bar span { color: #e2e8f0; font-size: 14px; font-weight: 500; }
+  .leaflet-popup-content-wrapper {
+    border-radius: 8px; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .leaflet-popup-content { margin: 10px 14px; }
+  .popup-title { font-weight: 600; font-size: 14px; color: #0f172a; margin-bottom: 4px; }
+  .popup-desc { font-size: 12px; color: #64748b; line-height: 1.5; }
+  .popup-elev { font-size: 11px; color: #e05a3a; margin-top: 4px; }
+  .custom-marker {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #fff; border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .legend {
+    position: fixed; bottom: 30px; left: 20px; z-index: 1000;
+    background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); border-radius: 10px;
+    padding: 16px; color: #e2e8f0; max-height: 40vh; overflow-y: auto; width: 240px;
+  }
+  .legend h3 { font-size: 13px; margin-bottom: 10px; color: #fff; }
+  .legend-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; cursor: pointer; }
+  .legend-item:hover { color: #fff; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  @media (max-width: 640px) {
+    .legend { width: 180px; font-size: 11px; left: 10px; bottom: 10px; padding: 12px; max-height: 35vh; }
+    .nav-bar { padding: 10px 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="../index.html">← 所有计划</a>
+  <span>/</span>
+  <a href="chuanzang.html">川藏南线</a>
+  <span>/ 路线图</span>
+</div>
+<div id="map"></div>
+<div class="legend" id="legend">
+  <h3>📌 每日站点</h3>
+</div>
+<script>
+const waypoints = [
+  { day: 1, date: "9/25", name: "成都", lat: 30.5728, lng: 104.0668, desc: "抵达成都，取车采购物资，宽窄巷子/锦里", elev: "500m" },
+  { day: 2, date: "9/26", name: "康定", lat: 30.0500, lng: 101.9667, desc: "雅安→泸定桥→康定（跑马山）", elev: "2560m" },
+  { day: 3, date: "9/27", name: "雅江", lat: 30.0333, lng: 101.0167, desc: "折多山→新都桥→高尔寺山→雅江（中秋）", elev: "2530m" },
+  { day: 4, date: "9/28", name: "稻城", lat: 29.0333, lng: 100.3000, desc: "剪子弯山→卡子拉山→理塘→稻城", elev: "3750m" },
+  { day: 5, date: "9/29", name: "亚丁", lat: 28.4333, lng: 100.3500, desc: "全天游览亚丁：洛绒牛场/牛奶海/五色海", elev: "2900m" },
+  { day: 6, date: "9/30", name: "巴塘", lat: 30.0000, lng: 99.1000, desc: "稻城→理塘→毛垭草原→姊妹湖→巴塘", elev: "2580m" },
+  { day: 7, date: "10/1", name: "左贡", lat: 29.6667, lng: 97.8333, desc: "金沙江→芒康→拉乌山→东达山(5130m)→左贡（国庆）", elev: "3750m" },
+  { day: 8, date: "10/2", name: "然乌", lat: 29.5000, lng: 96.7667, desc: "怒江72拐→怒江大桥→安久拉山→然乌湖", elev: "3960m" },
+  { day: 9, date: "10/3", name: "林芝", lat: 29.6500, lng: 94.3667, desc: "来古冰川→波密→鲁朗→色季拉山→林芝", elev: "3000m" },
+  { day: 10, date: "10/4", name: "拉萨", lat: 29.6500, lng: 91.1000, desc: "林拉高速→工布江达→墨竹工卡→拉萨", elev: "3650m" },
+  { day: 11, date: "10/5", name: "拉萨", lat: 29.6550, lng: 91.1050, desc: "布达拉宫→大昭寺→八廓街", elev: "3650m" },
+  { day: 12, date: "10/6", name: "羊卓雍措", lat: 28.9167, lng: 90.6000, desc: "拉萨→羊卓雍措环湖→返回拉萨", elev: "4441m" },
+  { day: 13, date: "10/7", name: "拉萨", lat: 29.6450, lng: 91.1150, desc: "拉萨贡嘎机场还车返程", elev: "3650m" },
+];
+
+const colors = ["#22c55e","#16a34a","#15803d","#166534","#10b981","#14b8a6","#06b6d4","#0891b2","#0e7490","#155e75","#164e63","#166534","#14532d"];
+
+const map = L.map("map", { zoomControl: true }).setView([30.0, 97.0], 6);
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 18, attribution: "&copy; OpenStreetMap"
+}).addTo(map);
+
+const pts = waypoints.map(w => [w.lat, w.lng]);
+const polyline = L.polyline(pts, {
+  color: "#22c55e", weight: 4, opacity: 0.85, dashArray: "8, 6"
+}).addTo(map);
+
+waypoints.forEach((w, i) => {
+  const color = colors[i % colors.length];
+  const marker = L.marker([w.lat, w.lng], {
+    icon: L.divIcon({
+      className: "",
+      html: `<div class="custom-marker" style="background:${color}">${w.day}</div>`,
+      iconSize: [28, 28], iconAnchor: [14, 14]
+    })
+  }).addTo(map);
+
+  marker.bindPopup(`
+    <div class="popup-title"><strong>Day ${w.day}</strong> · ${w.date} · ${w.name}</div>
+    <div class="popup-desc">${w.desc}</div>
+    <div class="popup-elev">海拔 ${w.elev}</div>
+  `);
+
+  const legend = document.getElementById("legend");
+  const item = document.createElement("div");
+  item.className = "legend-item";
+  item.innerHTML = `<div class="legend-dot" style="background:${color}"></div>Day ${w.day} ${w.date} — ${w.name}`;
+  item.addEventListener("click", () => {
+    map.setView([w.lat, w.lng], 8, { animate: true });
+    marker.openPopup();
+  });
+  legend.appendChild(item);
+});
+
+map.fitBounds(polyline.getBounds().pad(0.12));
+</script>
+</body>
+</html>
