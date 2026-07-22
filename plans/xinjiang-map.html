@@ -80,9 +80,7 @@ const colors = ["#f97316","#eab308","#22c55e","#06b6d4","#3b82f6","#8b5cf6","#ec
 
 const map = L.map("map", { zoomControl: true }).setView([44.5, 86.0], 6);
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 18, attribution: "&copy; OpenStreetMap"
-}).addTo(map);
+L.tileLayer('https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', { maxZoom: 18, attribution: '' }).addTo(map);
 
 const pts = waypoints.map(w => [w.lat, w.lng]);
 const polyline = L.polyline(pts, {
@@ -129,3 +127,4 @@ map.fitBounds(polyline.getBounds().pad(0.15));
 </script>
 </body>
 </html>
+
