@@ -80,7 +80,15 @@ const map = L.map("map", { zoomControl: true }).setView([30.0, 97.0], 6);
 
 L.tileLayer('https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', { maxZoom: 18, attribution: '' }).addTo(map);
 
-const pts = waypoints.map(w => [w.lat, w.lng]);
+const routeCoords = [
+  [30.573,104.067],[30.0,103.0],[29.917,102.233],[30.05,101.967],[30.05,101.8],[30.05,101.517],
+  [30.033,101.017],[30.0,100.8],[30.0,100.267],[29.5,100.5],[29.033,100.3],[28.433,100.35],
+  [29.0,100.0],[29.5,99.5],[30.0,99.1],[29.683,98.6],[29.667,97.833],[30.2,97.3],
+  [29.8,97.2],[29.7,96.9],[29.5,96.767],[29.867,95.767],[30.1,95.3],[29.7,94.7],
+  [29.65,94.367],[30.0,93.25],[29.833,92.233],[29.65,91.1],[29.655,91.105],
+  [28.917,90.6],[29.645,91.115]
+];
+const pts = routeCoords;
 const polyline = L.polyline(pts, {
   color: "#22c55e", weight: 4, opacity: 0.85, dashArray: "8, 6"
 }).addTo(map);
@@ -116,4 +124,5 @@ map.fitBounds(polyline.getBounds().pad(0.12));
 </script>
 </body>
 </html>
+
 

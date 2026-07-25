@@ -79,7 +79,13 @@ const map = L.map("map", { zoomControl: true }).setView([45.5, 126.5], 5);
 
 L.tileLayer('https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', { maxZoom: 18, attribution: '' }).addTo(map);
 
-const pts = waypoints.map(w => [w.lat, w.lng]);
+const routeCoords = [
+  [45.8038,126.535],[46.0,126.0],[46.5,125.0],[47.35,123.95],[48.0,125.0],[48.65,126.15],
+  [48.655,126.155],[48.0,127.5],[47.733,128.9],[48.0,129.0],[48.45,129.567],[48.883,130.383],
+  [47.5,130.5],[46.8,130.35],[45.5,130.0],[44.583,129.6],[44.2,129.2],[43.917,128.933],
+  [43.0,128.5],[42.433,128.1],[42.43,128.105],[42.0,126.0],[41.8,123.433],[40.5,122.5],[38.917,121.617]
+];
+const pts = routeCoords;
 const polyline = L.polyline(pts, {
   color: "#0369a1", weight: 4, opacity: 0.85, dashArray: "8, 6"
 }).addTo(map);
@@ -114,4 +120,5 @@ map.fitBounds(polyline.getBounds().pad(0.12));
 </script>
 </body>
 </html>
+
 
